@@ -1,21 +1,29 @@
-plugins {
+/*plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.download)
+}*/
+
+plugins {
+    id "com.android.application"       // AGP
+    id "org.jetbrains.kotlin.android"   // Kotlin
+    id "de.undercouch.download"
 }
 
 android {
     namespace 'com.patrick.main'
-    compileSdk rootProject.ext.compileSdkVersion
+
+    compileSdkVersion libs.versions.compile.sdk.get().toInteger()
 
     defaultConfig {
-        applicationId "com.patrick.drowsyguard"
-        minSdk rootProject.ext.minSdkVersion
-        targetSdk rootProject.ext.targetSdkVersion
-        versionCode rootProject.ext.versionCode
-        versionName rootProject.ext.versionName
-        testInstrumentationRunner rootProject.ext.testInstrumentationRunner
+        applicationId "com.example.app"
+        minSdkVersion libs.versions.min.sdk.get().toInteger()
+        targetSdkVersion libs.versions.target.sdk.get().toInteger()
+        versionCode libs.versions.version.code.get().toInteger()
+        versionName libs.versions.version.name.get()
+        testInstrumentationRunner libs.versions.test.runner.get() // 假設 test-runner 是用於此處
     }
+
 
     buildTypes {
         release {
@@ -25,11 +33,12 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility rootProject.ext.javaVersion
-        targetCompatibility rootProject.ext.javaVersion
+        sourceCompatibility = JavaVersion.toVersion(libs.versions['java'].get())
+        targetCompatibility = JavaVersion.toVersion(libs.versions['java'].get())
     }
+
     kotlinOptions {
-        jvmTarget = rootProject.ext.javaVersion.toString()
+        jvmTarget = libs.versions['java'].get()
     }
 
     buildFeatures {
@@ -44,27 +53,14 @@ dependencies {
     implementation platform(libs.kotlin.bom)
     implementation libs.kotlin.stdlib
     implementation libs.kotlin.reflect
+    implementation libs.bundles.androidx
+    implementation libs.bundles.navigation
 
-    implementation libs.androidx.core
-    implementation libs.androidx.appcompat
-    implementation libs.material
-    implementation libs.androidx.constraintlayout
-    implementation libs.androidx.fragment
-    implementation libs.androidx.activity
-
-    implementation libs.navigation.fragment
-    implementation libs.navigation.ui
-
-    implementation libs.camerax.core
-    implementation libs.camerax.camera2
-    implementation libs.camerax.lifecycle
-    implementation libs.camerax.view
-
+    implementation libs.bundles.camerax
     implementation libs.window
 
-    testImplementation libs.junit
-    androidTestImplementation libs.test.junit
-    androidTestImplementation libs.test.espresso
+    testImplementation libs.bundles.test
 
-    implementation libs.mediapipe.vision
+    implementation libs.mediapipe.tasks
 }
+
