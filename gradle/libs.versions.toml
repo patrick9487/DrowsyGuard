@@ -1,0 +1,94 @@
+[versions]
+# Kotlin
+kotlin = "1.9.22"
+
+# Android
+compileSdk = "36"
+targetSdk = "36"
+minSdk = "24"
+
+# AndroidX
+core-ktx = "1.12.0"
+appcompat = "1.5.1"
+material = "1.7.0"
+constraintlayout = "2.1.4"
+fragment-ktx = "1.5.4"
+activity-ktx = "1.7.1"
+lifecycle-runtime-ktx = "2.7.0"
+kotlinx-coroutines-android = "1.7.3"
+
+# Navigation
+navigation = "2.5.3"
+
+# CameraX
+camerax = "1.2.0-alpha02"
+
+# WindowManager
+window = "1.1.0-alpha03"
+
+# MediaPipe
+mediapipe = "0.10.14"
+
+# Testing
+junit = "4.13.2"
+androidx-test-ext = "1.1.3"
+espresso = "3.4.0"
+compose-bom = "2023.10.01"
+compose-ui = "1.5.4"
+compose-runtime = "1.5.4"
+compose-ui-tooling = "1.5.4"
+compose-material3 = "1.1.2"
+activity-compose = "1.8.2"
+
+[libraries]
+# Kotlin
+kotlin-bom = { group = "org.jetbrains.kotlin", name = "kotlin-bom", version.ref = "kotlin" }
+
+# AndroidX
+core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "core-ktx" }
+appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
+fragment-ktx = { group = "androidx.fragment", name = "fragment-ktx", version.ref = "fragment-ktx" }
+activity-ktx = { group = "androidx.activity", name = "activity-ktx", version.ref = "activity-ktx" }
+lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycle-runtime-ktx" }
+kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "kotlinx-coroutines-android" }
+activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activity-compose" }
+
+# Navigation
+navigation-fragment-ktx = { group = "androidx.navigation", name = "navigation-fragment-ktx", version.ref = "navigation" }
+navigation-ui-ktx = { group = "androidx.navigation", name = "navigation-ui-ktx", version.ref = "navigation" }
+
+# CameraX
+camera-core = { group = "androidx.camera", name = "camera-core", version.ref = "camerax" }
+camera-camera2 = { group = "androidx.camera", name = "camera-camera2", version.ref = "camerax" }
+camera-lifecycle = { group = "androidx.camera", name = "camera-lifecycle", version.ref = "camerax" }
+camera-view = { group = "androidx.camera", name = "camera-view", version.ref = "camerax" }
+
+# WindowManager
+window = { group = "androidx.window", name = "window", version.ref = "window" }
+
+# MediaPipe
+mediapipe-tasks-vision = { group = "com.google.mediapipe", name = "tasks-vision", version.ref = "mediapipe" }
+
+# Testing
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+androidx-test-ext = { group = "androidx.test.ext", name = "junit", version.ref = "androidx-test-ext" }
+espresso = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espresso" }
+androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "compose-bom" }
+androidx-compose-ui = { group = "androidx.compose.ui", name = "ui", version.ref = "compose-ui" }
+androidx-compose-runtime = { group = "androidx.compose.runtime", name = "runtime", version.ref = "compose-runtime" }
+androidx-compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling", version.ref = "compose-ui-tooling" }
+androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "compose-material3" }
+
+[plugins]
+android-application = { id = "com.android.application", version = "8.5.0" }
+android-library = { id = "com.android.library", version = "8.5.0" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+download = { id = "de.undercouch.download", version = "5.3.0" }
+
+[bundles]
+androidx = ["core-ktx", "appcompat", "material", "constraintlayout", "fragment-ktx", "activity-ktx"]
+navigation = ["navigation-fragment-ktx", "navigation-ui-ktx"]
+camerax = ["camera-core", "camera-camera2", "camera-lifecycle", "camera-view"]
+testing = ["junit", "androidx-test-ext", "espresso"] 

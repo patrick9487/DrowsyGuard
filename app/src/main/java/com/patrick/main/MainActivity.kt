@@ -16,32 +16,66 @@
 package com.patrick.main
 
 import android.os.Bundle
-import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
-import androidx.navigation.fragment.NavHostFragment
-import androidx.navigation.ui.setupWithNavController
-import com.patrick.main.R
-import com.patrick.main.databinding.ActivityMainBinding
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.camera.view.PreviewView
+import com.patrick.camera.CameraViewModel
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.LaunchedEffect
+import com.patrick.main.ui.FatigueMainScreen
 
-class MainActivity : AppCompatActivity() {
-    private lateinit var activityMainBinding: ActivityMainBinding
-    private val viewModel : MainViewModel by viewModels()
-
+class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        activityMainBinding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(activityMainBinding.root)
-
-        val navHostFragment =
-            supportFragmentManager.findFragmentById(R.id.fragment_container) as NavHostFragment
-        val navController = navHostFragment.navController
-        activityMainBinding.navigation.setupWithNavController(navController)
-        activityMainBinding.navigation.setOnNavigationItemReselectedListener {
-            // ignore the reselection
+        setContent {
+            CameraScreen()
         }
     }
+}
 
-    override fun onBackPressed() {
-        finish()
+@Composable
+fun CameraScreen() {
+    val context = LocalContext.current.applicationContext
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val cameraViewModel: CameraViewModel = viewModel(
+        factory = object : ViewModelProvider.Factory {
+            override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
+                @Suppress("UNCHECKED_CAST")
+                return CameraViewModel(context as android.app.Application) as T
+            }
+        }
+    )
+    val fatigueLevel by cameraViewModel.fatigueLevel.collectAsState()
+    val calibrationProgress by cameraViewModel.calibrationProgress.collectAsState()
+    val isCalibrating by cameraViewModel.isCalibrating.collectAsState()
+    val showFatigueDialog by cameraViewModel.showFatigueDialog.collectAsState()
+    val previewView = remember { PreviewView(context) }
+    LaunchedEffect(previewView, lifecycleOwner) {
+        cameraViewModel.initializeCamera(previewView, lifecycleOwner)
     }
+    FatigueMainScreen(
+        fatigueLevel = fatigueLevel,
+        calibrationProgress = calibrationProgress,
+        isCalibrating = isCalibrating,
+        showFatigueDialog = showFatigueDialog,
+        previewView = previewView,
+        onUserAcknowledged = {
+            cameraViewModel.onUserAcknowledged()
+        },
+        onUserRequestedRest = {
+            cameraViewModel.onUserRequestedRest()
+        }
+    )
 }
