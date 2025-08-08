@@ -15,6 +15,7 @@
             <option value="$PROJECT_DIR$/camera-input" />
             <option value="$PROJECT_DIR$/detection-logic" />
             <option value="$PROJECT_DIR$/shared-core" />
+            <option value="$PROJECT_DIR$/ui-components" />
             <option value="$PROJECT_DIR$/user-alert" />
             <option value="$PROJECT_DIR$/user-settings" />
           </set>

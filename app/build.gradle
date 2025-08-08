@@ -16,27 +16,46 @@
 plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
+    id 'org.jetbrains.kotlin.kapt'
+    id 'com.google.dagger.hilt.android'
     id 'de.undercouch.download'
 }
 
 android {
     namespace 'com.patrick.main'
-    compileSdk 36
+    compileSdk libs.versions.compileSdk.get().toInteger()
 
     defaultConfig {
         applicationId "com.patrick.drowsyguard"
-        minSdk 24
-        targetSdk 36
+        minSdk libs.versions.minSdk.get().toInteger()
+        targetSdk libs.versions.targetSdk.get().toInteger()
         versionCode 1
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        
+        // 啟用多 dex 支持
+        multiDexEnabled true
+        
+        // 向量繪圖支持
+        vectorDrawables.useSupportLibrary = true
     }
 
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
+            shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            
+            // 簽名配置
+            signingConfig signingConfigs.debug
+        }
+        
+        debug {
+            minifyEnabled false
+            debuggable true
+            applicationIdSuffix ".debug"
+            versionNameSuffix "-debug"
         }
     }
     compileOptions {
@@ -45,6 +64,10 @@ android {
     }
     kotlinOptions {
         jvmTarget = '17'
+        freeCompilerArgs += [
+            "-opt-in=kotlin.RequiresOptIn",
+            "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi"
+        ]
     }
     buildFeatures {
         compose true
@@ -59,39 +82,40 @@ project.ext.ASSET_DIR = projectDir.toString() + '/src/main/assets'
 apply from: 'download_tasks.gradle'
 
 dependencies {
-    implementation platform(libs.androidx.compose.bom)
-    implementation libs.androidx.compose.ui
-    implementation libs.androidx.compose.material3
-    implementation libs.androidx.compose.ui.tooling
-    implementation libs.androidx.compose.runtime
+    // 使用版本目錄
+    implementation libs.bundles.androidx
+    implementation libs.bundles.lifecycle
+    implementation libs.bundles.navigation
+    implementation libs.bundles.camerax
+    implementation libs.bundles.compose
+    
+    // 單獨依賴
     implementation libs.kotlinx.coroutines.android
     implementation libs.activity.compose
-    implementation 'androidx.lifecycle:lifecycle-runtime-compose:2.6.2'
-    implementation 'androidx.lifecycle:lifecycle-viewmodel-compose:2.6.2'
-    // CameraX Compose（如需 Camera 預覽）
-
-    // AndroidX
-    implementation libs.bundles.androidx
-
-    // Navigation library
-    implementation libs.bundles.navigation
-
-    // WindowManager
+    implementation libs.lifecycle.runtime.compose
+    implementation libs.lifecycle.viewmodel.compose
     implementation libs.window
-
-    // Testing
-    testImplementation libs.bundles.testing
-
-    // MediaPipe Library
     implementation libs.mediapipe.tasks.vision
+    implementation libs.accompanist.permissions
+    implementation libs.startup.runtime
     
-    // 项目模块依赖
+    // 項目模組
+    implementation project(':ui-components')
     implementation project(':detection-logic')
     implementation project(':user-alert')
     implementation project(':shared-core')
     implementation project(':camera-input')
     implementation project(':user-settings')
     implementation project(':account-auth')
-    implementation libs.camera.view
-    implementation "com.google.accompanist:accompanist-permissions:0.34.0"
+    
+    // Hilt 依賴注入
+    implementation libs.hilt.android
+    kapt libs.hilt.compiler
+    
+    // 測試依賴
+    testImplementation libs.bundles.unit.testing
+    androidTestImplementation libs.bundles.testing
+    androidTestImplementation libs.androidx.compose.ui.test.junit4
+    debugImplementation libs.androidx.compose.ui.tooling
+    debugImplementation libs.androidx.compose.ui.test.manifest
 }

@@ -20,4 +20,4 @@ class SevereFatigueDialogFragment : DialogFragment() {
             .setCancelable(false)
             .create()
     }
-} 
+}

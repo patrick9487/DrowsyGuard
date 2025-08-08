@@ -18,5 +18,42 @@ plugins {
     id 'com.android.application' version '8.10.1' apply false
     id 'com.android.library' version '8.10.1' apply false
     id 'org.jetbrains.kotlin.android' version '1.9.22' apply false
+    id 'org.jetbrains.kotlin.kapt' version '1.9.22' apply false
     id 'de.undercouch.download' version '5.3.0' apply false
+    id 'com.google.dagger.hilt.android' version '2.48' apply false
+    id 'io.gitlab.arturbosch.detekt' version '1.23.4' apply false
+    id 'org.jlleitschuh.gradle.ktlint' version '12.1.0' apply false
+    id 'org.jetbrains.kotlinx.kover' version '0.7.4' apply false
+}
+
+// 全局配置 - 移除，因為在 settings.gradle 中已配置
+
+// 子項目配置
+subprojects {
+    apply plugin: 'io.gitlab.arturbosch.detekt'
+    apply plugin: 'org.jlleitschuh.gradle.ktlint'
+    
+    detekt {
+        config = files("$rootDir/config/detekt/detekt.yml")
+        buildUponDefaultConfig = true
+        allRules = false
+        reports {
+            html.enabled = true
+            xml.enabled = true
+            txt.enabled = false
+            sarif.enabled = true
+        }
+    }
+    
+    ktlint {
+        android.set(true)
+        verbose.set(true)
+        filter {
+            exclude { element -> element.file.path.contains("build/") }
+        }
+        reporters {
+            reporter "html"
+            reporter "json"
+        }
+    }
 }

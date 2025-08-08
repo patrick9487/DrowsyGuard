@@ -6,16 +6,17 @@ package com.patrick.core
 data class FatigueDetectionResult(
     val isFatigueDetected: Boolean,
     val fatigueLevel: FatigueLevel,
-    val events: List<FatigueEvent>
+    val events: List<FatigueEvent>,
+    val faceDetected: Boolean = true, // 是否偵測到臉部
 )
 
 /**
  * 疲劳级别
  */
 enum class FatigueLevel {
-    NORMAL,     // 正常
-    MODERATE,   // 中度疲劳
-    SEVERE      // 严重疲劳
+    NORMAL, // 正常
+    NOTICE, // 提醒（原 MODERATE）
+    WARNING, // 警告（原 SEVERE）
 }
 
 /**
@@ -23,7 +24,9 @@ enum class FatigueLevel {
  */
 sealed class FatigueEvent {
     data class EyeClosure(val duration: Long) : FatigueEvent()
+
     data class Yawn(val duration: Long) : FatigueEvent()
+
     data class HighBlinkFrequency(val frequency: Int) : FatigueEvent()
 }
 
@@ -32,10 +35,39 @@ sealed class FatigueEvent {
  */
 interface FatigueDetectionListener {
     fun onFatigueDetected(result: FatigueDetectionResult)
+
     fun onFatigueLevelChanged(level: FatigueLevel)
+
     fun onBlink()
-    // 校正相關回調
+
+    fun onCalibrationStarted()
+
+    fun onCalibrationProgress(
+        progress: Int,
+        currentEar: Float,
+    )
+
+    fun onCalibrationCompleted(
+        newThreshold: Float,
+        minEar: Float,
+        maxEar: Float,
+        avgEar: Float,
+    )
+}
+
+/**
+ * 疲劳UI回调接口
+ */
+interface FatigueUiCallback {
+    fun onNormalDetection() {}
+    fun onNoFaceDetected() {}
+    fun onNoticeFatigue() {}
+    fun onWarningFatigue() {}
+    fun onUserAcknowledged() {}
+    fun onUserRequestedRest() {}
+    fun onBlink() {}
     fun onCalibrationStarted() {}
     fun onCalibrationProgress(progress: Int, currentEar: Float) {}
     fun onCalibrationCompleted(newThreshold: Float, minEar: Float, maxEar: Float, avgEar: Float) {}
-} 
+    fun setWarningDialogActive(active: Boolean)
+}

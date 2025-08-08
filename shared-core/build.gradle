@@ -31,7 +31,7 @@ android {
 
 dependencies {
     implementation libs.bundles.androidx
+    implementation libs.work.runtime.ktx
     implementation platform(libs.kotlin.bom)
-    
     testImplementation libs.bundles.testing
 }

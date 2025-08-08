@@ -3,83 +3,89 @@ package com.patrick.camera
 import android.app.Application
 import androidx.camera.view.PreviewView
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.viewModelScope
 import com.google.mediapipe.tasks.vision.facelandmarker.FaceLandmarkerResult
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import com.patrick.detection.FatigueDetectionManager
-import com.patrick.core.FatigueUiCallback
-import com.patrick.core.FatigueLevel
-import androidx.lifecycle.LifecycleOwner
 
+/**
+ * 相機 ViewModel
+ * 負責相機初始化和面部特徵點檢測
+ * 遵循單一職責原則
+ */
 class CameraViewModel(
-    application: Application
-) : AndroidViewModel(application), FatigueUiCallback {
+    application: Application,
+) : AndroidViewModel(application) {
     private val cameraUseCase: CameraUseCase = CameraModule.createCameraModule(application)
-    private val fatigueDetectionManager = FatigueDetectionManager(application, this)
-
-    private val _fatigueLevel = MutableStateFlow(FatigueLevel.NORMAL)
-    val fatigueLevel: StateFlow<FatigueLevel> = _fatigueLevel
 
     private val _faceLandmarks = MutableStateFlow<FaceLandmarkerResult?>(null)
     val faceLandmarks: StateFlow<FaceLandmarkerResult?> = _faceLandmarks
 
-    private val _calibrationProgress = MutableStateFlow(0)
-    val calibrationProgress: StateFlow<Int> = _calibrationProgress
-    private val _isCalibrating = MutableStateFlow(false)
-    val isCalibrating: StateFlow<Boolean> = _isCalibrating
-    private val _showFatigueDialog = MutableStateFlow(false)
-    val showFatigueDialog: StateFlow<Boolean> = _showFatigueDialog
+    private val _isCameraReady = MutableStateFlow(false)
+    val isCameraReady: StateFlow<Boolean> = _isCameraReady
 
-    fun initializeCamera(previewView: PreviewView, lifecycleOwner: LifecycleOwner) {
+    private val _errorMessage = MutableStateFlow<String?>(null)
+    val errorMessage: StateFlow<String?> = _errorMessage
+
+    /**
+     * 初始化相機
+     */
+    fun initializeCamera(
+        previewView: PreviewView,
+        lifecycleOwner: LifecycleOwner,
+        onFaceLandmarksResult: (FaceLandmarkerResult) -> Unit,
+    ) {
         viewModelScope.launch {
-            cameraUseCase.setFaceLandmarksCallback { result ->
-                _faceLandmarks.value = result
-                fatigueDetectionManager.processFaceLandmarks(result)
+            try {
+                cameraUseCase.setFaceLandmarksCallback { result ->
+                    _faceLandmarks.value = result
+                    onFaceLandmarksResult(result)
+                }
+                cameraUseCase.initializeCamera(previewView, lifecycleOwner)
+                _isCameraReady.value = true
+                _errorMessage.value = null
+            } catch (e: Exception) {
+                _errorMessage.value = "相機初始化失敗: ${e.message}"
+                _isCameraReady.value = false
             }
-            cameraUseCase.initializeCamera(previewView, lifecycleOwner)
-            
-            // 啟動疲勞檢測
-            fatigueDetectionManager.startDetection()
-            
-            // 開始校正流程
-            fatigueDetectionManager.startCalibration()
         }
     }
 
+    /**
+     * 釋放相機資源
+     */
     fun releaseCamera() {
         viewModelScope.launch {
-            cameraUseCase.releaseCamera()
+            try {
+                cameraUseCase.releaseCamera()
+                _isCameraReady.value = false
+                _errorMessage.value = null
+            } catch (e: Exception) {
+                _errorMessage.value = "相機釋放失敗: ${e.message}"
+            }
         }
     }
 
-    // FatigueUiCallback 實現
-    override fun onBlink() {}
-    override fun onCalibrationStarted() {
-        _isCalibrating.value = true
-        _calibrationProgress.value = 0
+    /**
+     * 清除錯誤信息
+     */
+    fun clearError() {
+        _errorMessage.value = null
     }
-    override fun onCalibrationProgress(progress: Int, currentEar: Float) {
-        _calibrationProgress.value = progress
+
+    /**
+     * 檢查相機是否準備就緒
+     */
+    fun isCameraReady(): Boolean {
+        return _isCameraReady.value
     }
-    override fun onCalibrationCompleted(newThreshold: Float, minEar: Float, maxEar: Float, avgEar: Float) {
-        _isCalibrating.value = false
-        _calibrationProgress.value = 100
+
+    /**
+     * 獲取相機狀態信息
+     */
+    fun getCameraStatus(): String {
+        return cameraUseCase.checkCameraStatus()
     }
-    override fun onModerateFatigue() {
-        _fatigueLevel.value = FatigueLevel.MODERATE
-        _showFatigueDialog.value = true
-    }
-    override fun onUserAcknowledged() {
-        _fatigueLevel.value = FatigueLevel.NORMAL
-        _showFatigueDialog.value = false
-    }
-    override fun onUserRequestedRest() {
-        _fatigueLevel.value = FatigueLevel.SEVERE
-        _showFatigueDialog.value = true
-    }
-    override fun onFatigueAlert(message: String) {
-        // 可根據需求處理警告，例如寫入 log、更新狀態流、觸發 UI 等
-    }
-} 
+}

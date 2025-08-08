@@ -16,4 +16,4 @@ class RestReminderDialogFragment : DialogFragment() {
             .setCancelable(false)
             .create()
     }
-} 
+}

@@ -1,11 +1,11 @@
 package com.patrick.main.ui
 
 import android.app.Dialog
+import android.content.DialogInterface
 import android.os.Bundle
 import androidx.fragment.app.DialogFragment
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import android.content.DialogInterface
 import androidx.navigation.fragment.findNavController
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
 class ModerateFatigueDialogFragment : DialogFragment() {
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
@@ -23,4 +23,4 @@ class ModerateFatigueDialogFragment : DialogFragment() {
         super.onDismiss(dialog)
         findNavController().popBackStack()
     }
-} 
+}

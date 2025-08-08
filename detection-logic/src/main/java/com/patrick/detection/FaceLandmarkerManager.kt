@@ -3,13 +3,11 @@ package com.patrick.detection
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
-import androidx.camera.core.ImageProxy
-import com.google.mediapipe.tasks.vision.facelandmarker.FaceLandmarker
-import com.google.mediapipe.tasks.vision.facelandmarker.FaceLandmarker.FaceLandmarkerOptions
 import com.google.mediapipe.tasks.core.BaseOptions
 import com.google.mediapipe.tasks.core.Delegate
 import com.google.mediapipe.tasks.vision.core.RunningMode
-import com.google.mediapipe.tasks.vision.facelandmarker.FaceLandmarkerResult
+import com.google.mediapipe.tasks.vision.facelandmarker.FaceLandmarker
+import com.google.mediapipe.tasks.vision.facelandmarker.FaceLandmarker.FaceLandmarkerOptions
 import com.patrick.core.Constants
 
 object FaceLandmarkerManager {
@@ -29,18 +27,20 @@ object FaceLandmarkerManager {
     fun get(context: Context): FaceLandmarker {
         lastUsedTimestamp = System.currentTimeMillis()
         if (faceLandmarker == null) {
-            val baseOptions = BaseOptions.builder()
-                .setDelegate(Delegate.CPU)
-                .setModelAssetPath(Constants.FACE_LANDMARKER_MODEL_PATH)
-                .build()
-            val options = FaceLandmarkerOptions.builder()
-                .setBaseOptions(baseOptions)
-                .setMinFaceDetectionConfidence(0.5f)
-                .setMinTrackingConfidence(0.5f)
-                .setMinFacePresenceConfidence(0.5f)
-                .setNumFaces(1)
-                .setOutputFaceBlendshapes(true)
-                .build()
+            val baseOptions =
+                BaseOptions.builder()
+                    .setDelegate(Delegate.CPU)
+                    .setModelAssetPath(Constants.FACE_LANDMARKER_MODEL_PATH)
+                    .build()
+            val options =
+                FaceLandmarkerOptions.builder()
+                    .setBaseOptions(baseOptions)
+                    .setMinFaceDetectionConfidence(0.3f)  // 降低信心度閾值讓偵測更敏感
+                    .setMinTrackingConfidence(0.3f)      // 降低追蹤信心度
+                    .setMinFacePresenceConfidence(0.3f)  // 降低存在信心度
+                    .setNumFaces(1)
+                    .setOutputFaceBlendshapes(true)
+                    .build()
             faceLandmarker = FaceLandmarker.createFromOptions(context, options)
             scheduleIdleCheck()
         }
@@ -53,19 +53,21 @@ object FaceLandmarkerManager {
      */
     @Synchronized
     fun createForRealTime(context: Context): FaceLandmarker {
-        val baseOptions = BaseOptions.builder()
-            .setDelegate(Delegate.CPU)
-            .setModelAssetPath(Constants.FACE_LANDMARKER_MODEL_PATH)
-            .build()
-        val options = FaceLandmarkerOptions.builder()
-            .setBaseOptions(baseOptions)
-            .setRunningMode(RunningMode.IMAGE)
-            .setMinFaceDetectionConfidence(0.5f)
-            .setMinTrackingConfidence(0.5f)
-            .setMinFacePresenceConfidence(0.5f)
-            .setNumFaces(1)
-            .setOutputFaceBlendshapes(true)
-            .build()
+        val baseOptions =
+            BaseOptions.builder()
+                .setDelegate(Delegate.CPU)
+                .setModelAssetPath(Constants.FACE_LANDMARKER_MODEL_PATH)
+                .build()
+        val options =
+            FaceLandmarkerOptions.builder()
+                .setBaseOptions(baseOptions)
+                .setRunningMode(RunningMode.IMAGE)
+                .setMinFaceDetectionConfidence(0.5f)
+                .setMinTrackingConfidence(0.5f)
+                .setMinFacePresenceConfidence(0.5f)
+                .setNumFaces(1)
+                .setOutputFaceBlendshapes(true)
+                .build()
         return FaceLandmarker.createFromOptions(context, options)
     }
 
@@ -101,13 +103,14 @@ object FaceLandmarkerManager {
 
     private fun scheduleIdleCheck() {
         idleCheckRunnable?.let { handler.removeCallbacks(it) }
-        idleCheckRunnable = Runnable {
-            maybeReleaseIfIdle()
-            // 若尚未釋放，繼續排程
-            if (faceLandmarker != null) {
-                handler.postDelayed(idleCheckRunnable!!, IDLE_TIMEOUT_MS)
+        idleCheckRunnable =
+            Runnable {
+                maybeReleaseIfIdle()
+                // 若尚未釋放，繼續排程
+                if (faceLandmarker != null) {
+                    handler.postDelayed(idleCheckRunnable!!, IDLE_TIMEOUT_MS)
+                }
             }
-        }
         handler.postDelayed(idleCheckRunnable!!, IDLE_TIMEOUT_MS)
     }
-} 
+}

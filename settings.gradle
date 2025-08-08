@@ -29,6 +29,7 @@ dependencyResolutionManagement {
 }
 rootProject.name = "DrowsyGuard"
 include ':app'
+include ':ui-components'
 include ':detection-logic'
 include ':camera-input'
 include ':user-alert'

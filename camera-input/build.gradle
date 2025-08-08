@@ -35,29 +35,36 @@ android {
 }
 
 dependencies {
-    implementation(libs.core.ktx)
-    implementation(libs.camera.core)
-    implementation(libs.camera.camera2)
-    implementation(libs.camera.lifecycle)
-    implementation(libs.camera.view)
-    implementation(libs.activity.ktx)
-    implementation(libs.fragment.ktx)
-    implementation(libs.lifecycle.runtime.ktx)
-    implementation(libs.kotlinx.coroutines.android)
-    implementation(platform(libs.androidx.compose.bom))
-    implementation(libs.androidx.compose.ui)
-    implementation(libs.androidx.compose.runtime)
-    implementation(libs.androidx.compose.ui.tooling)
-    implementation(libs.androidx.compose.material3)
-    
-    // MediaPipe 依賴
-    implementation(libs.mediapipe.tasks.vision)
-    
-    // 項目模組依賴
-    implementation project(':detection-logic')
     implementation project(':shared-core')
+    implementation project(':ui-components')
+    implementation project(':detection-logic')
     
-    testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.test.ext)
-    androidTestImplementation(libs.espresso)
+    // Kotlin Coroutines
+    implementation libs.kotlinx.coroutines.android
+    
+    // AndroidX
+    implementation libs.core.ktx
+    implementation libs.lifecycle.runtime.ktx
+    implementation libs.lifecycle.viewmodel
+    
+    // Compose
+    implementation platform(libs.androidx.compose.bom)
+    implementation libs.androidx.compose.ui
+    implementation libs.androidx.compose.runtime
+    implementation libs.androidx.compose.ui.tooling
+    implementation libs.androidx.compose.material3
+    
+    // CameraX
+    implementation libs.camera.core
+    implementation libs.camera.camera2
+    implementation libs.camera.lifecycle
+    implementation libs.camera.view
+    
+    // MediaPipe
+    implementation libs.mediapipe.tasks.vision
+    
+    // Testing
+    testImplementation libs.junit
+    androidTestImplementation libs.androidx.test.ext
+    androidTestImplementation libs.espresso
 }
