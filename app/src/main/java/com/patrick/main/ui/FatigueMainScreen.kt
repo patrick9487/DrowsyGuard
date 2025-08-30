@@ -2,13 +2,18 @@ package com.patrick.main.ui
 
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -33,8 +38,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.LaunchedEffect
@@ -52,6 +61,10 @@ fun FatigueMainScreen(
     onUserAcknowledged: () -> Unit = {},
     onUserRequestedRest: () -> Unit = {},
     uiEvent: kotlinx.coroutines.flow.SharedFlow<com.patrick.ui.fatigue.FatigueViewModel.FatigueUiEvent>? = null,
+    // 新增的數據參數
+    blinkFrequency: Int = 0,
+    yawnCount: Int = 0,
+    eyeClosureDuration: Long = 0L,
 ) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -108,6 +121,9 @@ fun FatigueMainScreen(
                 showFatigueDialog = showFatigueDialog,
                 onUserAcknowledged = onUserAcknowledged,
                 onUserRequestedRest = onUserRequestedRest,
+                blinkFrequency = blinkFrequency,
+                yawnCount = yawnCount,
+                eyeClosureDuration = eyeClosureDuration,
             )
             // 疲勞警告對話框
             if (showFatigueDialog) {
@@ -207,6 +223,9 @@ private fun FatigueMainContent(
     showFatigueDialog: Boolean,
     onUserAcknowledged: () -> Unit,
     onUserRequestedRest: () -> Unit,
+    blinkFrequency: Int,
+    yawnCount: Int,
+    eyeClosureDuration: Long,
 ) {
     Box(
         modifier =
@@ -214,11 +233,70 @@ private fun FatigueMainContent(
                 .fillMaxSize()
                 .padding(paddingValues),
     ) {
-        // Camera 預覽區
-        AndroidView(
-            factory = { previewView },
+        // 主要內容佈局
+        Column(
             modifier = Modifier.fillMaxSize(),
-        )
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            // 頂部標題
+            Text(
+                text = "疲勞偵測中...",
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(top = 16.dp, bottom = 8.dp),
+            )
+
+            // 相機預覽區域
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+                    .background(Color.Black)
+                    .padding(16.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                AndroidView(
+                    factory = { previewView },
+                    modifier = Modifier.fillMaxSize(),
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // 疲勞等級指示器
+            FatigueLevelIndicator(fatigueLevel)
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            // 統計數據
+            DetectionStats(
+                blinkFrequency = blinkFrequency,
+                yawnCount = yawnCount,
+                eyeClosureDuration = eyeClosureDuration,
+            )
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            // 底部按鈕
+            Button(
+                onClick = { /* TODO: 實現儲存記錄功能 */ },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.Gray,
+                ),
+                shape = RoundedCornerShape(8.dp),
+            ) {
+                Text(
+                    text = "儲存記錄",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = Color.White,
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+        }
 
         // 校正進度條
         if (isCalibrating) {
@@ -229,9 +307,100 @@ private fun FatigueMainContent(
         if (fatigueLevel != com.patrick.core.FatigueLevel.NORMAL && !isCalibrating) {
             FatigueAlertOverlay(fatigueLevel)
         }
+    }
+}
 
-        // 警告視窗
-        // 移除基於布林的對話框，統一改由一次性事件 uiEvent 在上層顯示
+@Composable
+private fun FatigueLevelIndicator(fatigueLevel: com.patrick.core.FatigueLevel) {
+    val (levelNumber, levelText, backgroundColor) = when (fatigueLevel) {
+        com.patrick.core.FatigueLevel.NORMAL -> Triple(0, "正常", Color.Green)
+        com.patrick.core.FatigueLevel.NOTICE -> Triple(2, "輕度疲勞", Color(0xFFFF9800))
+        com.patrick.core.FatigueLevel.WARNING -> Triple(3, "重度疲勞", Color(0xFFF44336))
+    }
+
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        // 圓形指示器
+        Box(
+            modifier = Modifier
+                .size(120.dp)
+                .clip(CircleShape)
+                .background(backgroundColor),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = levelNumber.toString(),
+                style = MaterialTheme.typography.displayLarge,
+                color = Color.White,
+                fontWeight = FontWeight.Bold,
+            )
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // 等級文字
+        Text(
+            text = levelText,
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+            fontWeight = FontWeight.Medium,
+        )
+    }
+}
+
+@Composable
+private fun DetectionStats(
+    blinkFrequency: Int,
+    yawnCount: Int,
+    eyeClosureDuration: Long,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.SpaceEvenly,
+    ) {
+        // 眨眼頻率
+        StatItem(
+            value = "${blinkFrequency}次",
+            label = "眨眼/分鐘",
+        )
+
+        // 打哈欠次數
+        StatItem(
+            value = "${yawnCount}次",
+            label = "哈欠/分鐘",
+        )
+
+        // 閉眼時間
+        StatItem(
+            value = "${String.format("%.1f", eyeClosureDuration / 1000.0)}秒",
+            label = "閉眼時間",
+        )
+    }
+}
+
+@Composable
+private fun StatItem(
+    value: String,
+    label: String,
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(
+            text = value,
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+            textAlign = TextAlign.Center,
+        )
     }
 }
 

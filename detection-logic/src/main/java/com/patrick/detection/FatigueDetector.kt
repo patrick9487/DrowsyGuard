@@ -705,6 +705,30 @@ class FatigueDetector(private val context: Context) {
     }
 
     /**
+     * 獲取當前打哈欠次數
+     */
+    fun getYawnCount(): Int = yawnCount
+
+    /**
+     * 獲取當前閉眼時間（毫秒）
+     */
+    fun getEyeClosureDuration(): Long {
+        return if (isEyeClosed && lastEyeClosureStartTime > 0) {
+            System.currentTimeMillis() - lastEyeClosureStartTime
+        } else {
+            0L
+        }
+    }
+
+    /**
+     * 獲取最近一分鐘的打哈欠次數
+     */
+    fun getRecentYawnCount(windowMs: Long = 60000L): Int {
+        // 這裡可以實現更複雜的時間窗口邏輯，目前簡單返回當前計數
+        return yawnCount
+    }
+
+    /**
      * 開始校正
      */
     fun startCalibration() {

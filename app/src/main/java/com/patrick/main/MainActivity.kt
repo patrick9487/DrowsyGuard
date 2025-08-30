@@ -168,6 +168,11 @@ fun CameraScreen() {
     val statusText by fatigueScreenViewModel.statusText.collectAsState()
     val previewView = remember { PreviewView(context) }
 
+    // 新增的數據狀態
+    val blinkFrequency by fatigueScreenViewModel.blinkFrequency.collectAsState()
+    val yawnCount by fatigueScreenViewModel.yawnCount.collectAsState()
+    val eyeClosureDuration by fatigueScreenViewModel.eyeClosureDuration.collectAsState()
+
     // 添加調試日誌
     LaunchedEffect(fatigueLevel, isCalibrating, showFatigueDialog, statusText) {
         android.util.Log.d(
@@ -197,5 +202,9 @@ fun CameraScreen() {
             android.util.Log.d("MainActivity", "用戶要求休息")
             fatigueScreenViewModel.onUserRequestedRest()
         },
+        uiEvent = fatigueScreenViewModel.uiEvent,
+        blinkFrequency = blinkFrequency,
+        yawnCount = yawnCount,
+        eyeClosureDuration = eyeClosureDuration,
     )
 }

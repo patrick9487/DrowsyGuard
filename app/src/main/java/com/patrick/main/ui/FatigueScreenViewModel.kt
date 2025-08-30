@@ -45,6 +45,10 @@ class FatigueScreenViewModel(
     val blinkFrequency: StateFlow<Int> = fatigueViewModel.blinkFrequency
     val showBlinkFrequency: StateFlow<Boolean> = fatigueViewModel.showBlinkFrequency
 
+    // 打哈欠和閉眼時間相關狀態
+    val yawnCount: StateFlow<Int> = fatigueViewModel.yawnCount
+    val eyeClosureDuration: StateFlow<Long> = fatigueViewModel.eyeClosureDuration
+
     /**
      * 初始化疲勞檢測功能
      */

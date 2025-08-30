@@ -320,6 +320,22 @@ class FatigueDetectionManager(
         fatigueDetector.setLogEnabled(sensitivity, trigger, calibration, event, reset)
     }
     fun getRecentBlinkCount(windowMs: Long): Int = fatigueDetector.getRecentBlinkCount(windowMs)
+
+    /**
+     * 獲取當前打哈欠次數
+     */
+    fun getYawnCount(): Int = fatigueDetector.getYawnCount()
+
+    /**
+     * 獲取當前閉眼時間（毫秒）
+     */
+    fun getEyeClosureDuration(): Long = fatigueDetector.getEyeClosureDuration()
+
+    /**
+     * 獲取最近一分鐘的打哈欠次數
+     */
+    fun getRecentYawnCount(windowMs: Long = 60000L): Int = fatigueDetector.getRecentYawnCount(windowMs)
+
     fun isCalibrating(): Boolean = fatigueDetector.isCalibrating()
     fun getCalibrationProgress(): Int = fatigueDetector.getCalibrationProgress()
     fun isFaceDetected(): Boolean = fatigueDetector.isFaceDetected()

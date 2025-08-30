@@ -89,6 +89,16 @@ class FatigueViewModel(
     private val _showBlinkFrequency = MutableStateFlow(true)
     val showBlinkFrequency: StateFlow<Boolean> = _showBlinkFrequency
 
+    // ========== 打哈欠和閉眼時間相關狀態 ==========
+
+    // 打哈欠次數（每分鐘）
+    private val _yawnCount = MutableStateFlow(0)
+    val yawnCount: StateFlow<Int> = _yawnCount
+
+    // 閉眼時間（毫秒）
+    private val _eyeClosureDuration = MutableStateFlow(0L)
+    val eyeClosureDuration: StateFlow<Long> = _eyeClosureDuration
+
     init {
         // 根據環境設置調試模式
         // 在 ui-components 模組中無法直接訪問 BuildConfig，使用其他方式判斷
@@ -391,6 +401,22 @@ class FatigueViewModel(
         _showFatigueDialog.value = showDialog
         _statusText.value = status
         _isFaceDetected.value = faceDetected
+        
+        // 更新打哈欠次數和閉眼時間
+        updateDetectionData()
+    }
+
+    /**
+     * 更新偵測數據（打哈欠次數、閉眼時間等）
+     */
+    private fun updateDetectionData() {
+        try {
+            _yawnCount.value = fatigueDetectionManager.getYawnCount()
+            _eyeClosureDuration.value = fatigueDetectionManager.getEyeClosureDuration()
+            _blinkFrequency.value = fatigueDetectionManager.getRecentBlinkCount(60000L) // 最近一分鐘的眨眼次數
+        } catch (e: Exception) {
+            Log.e(TAG, "更新偵測數據失敗", e)
+        }
     }
 
     /**
