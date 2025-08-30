@@ -395,27 +395,33 @@ private fun CalibrationStatItem(
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.fillMaxWidth(), // 使用 fillMaxWidth 而不是固定寬度
+        modifier = Modifier.fillMaxWidth(),
     ) {
-        // 進度條
-        LinearProgressIndicator(
-            progress = progress / 100f,
-            modifier = Modifier
-                .height(8.dp)
-                .fillMaxWidth(),
-            color = MaterialTheme.colorScheme.primary,
-            trackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
-        )
-        
-        Spacer(modifier = Modifier.height(4.dp))
-        
-        // 進度百分比
-        Text(
-            text = "${progress}%",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary,
-        )
+        // 進度條和百分比組合顯示
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
+        ) {
+            // 進度條
+            LinearProgressIndicator(
+                progress = progress / 100f,
+                modifier = Modifier
+                    .height(6.dp)
+                    .size(width = 40.dp, height = 6.dp),
+                color = MaterialTheme.colorScheme.primary,
+                trackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
+            )
+            
+            Spacer(modifier = Modifier.size(width = 8.dp, height = 0.dp))
+            
+            // 進度百分比
+            Text(
+                text = "${progress}%",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary,
+            )
+        }
         
         // 標籤
         Text(
