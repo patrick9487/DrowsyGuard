@@ -396,38 +396,27 @@ private fun CalibrationStatItem(
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        // 進度條和百分比組合顯示，佔據與 StatItem 的 value 相同的空間
-        Box(
-            modifier = Modifier.height(32.dp), // 與 StatItem 的 titleLarge 文字高度一致
-            contentAlignment = Alignment.Center,
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center,
-            ) {
-                // 進度條
-                LinearProgressIndicator(
-                    progress = progress / 100f,
-                    modifier = Modifier
-                        .height(6.dp)
-                        .size(width = 40.dp, height = 6.dp),
-                    color = MaterialTheme.colorScheme.primary,
-                    trackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
-                )
-                
-                Spacer(modifier = Modifier.size(width = 8.dp, height = 0.dp))
-                
-                // 進度百分比
-                Text(
-                    text = "${progress}%",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
-                )
-            }
-        }
+        // 進度條
+        LinearProgressIndicator(
+            progress = progress / 100f,
+            modifier = Modifier
+                .height(8.dp)
+                .fillMaxWidth(),
+            color = MaterialTheme.colorScheme.primary,
+            trackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
+        )
         
-        // 標籤，與 StatItem 的 label 完全一致
+        Spacer(modifier = Modifier.height(4.dp))
+        
+        // 進度百分比
+        Text(
+            text = "${progress}%",
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.primary,
+        )
+        
+        // 標籤
         Text(
             text = label,
             style = MaterialTheme.typography.bodyMedium,
