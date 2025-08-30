@@ -238,20 +238,12 @@ private fun FatigueMainContent(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            // 頂部標題
-            Text(
-                text = "疲勞偵測中...",
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(top = 16.dp, bottom = 8.dp),
-            )
-
-            // 相機預覽區域 - 佔據上半部分，去掉黑色背景
+            // 相機預覽區域 - 佔據主要空間，避免與導航欄重疊
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f) // 讓相機畫面佔據剩餘空間的主要部分
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                    .weight(1f) // 讓相機畫面佔據主要空間
+                    .padding(horizontal = 8.dp, vertical = 4.dp),
                 contentAlignment = Alignment.Center,
             ) {
                 AndroidView(
@@ -260,17 +252,17 @@ private fun FatigueMainContent(
                 )
             }
 
-            // 下半部分數據顯示區域
+            // 數據顯示區域 - 緊湊排列在底部
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 // 疲勞等級指示器
                 FatigueLevelIndicator(fatigueLevel)
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
                 // 統計數據
                 DetectionStats(
@@ -279,27 +271,7 @@ private fun FatigueMainContent(
                     eyeClosureDuration = eyeClosureDuration,
                 )
 
-                Spacer(modifier = Modifier.height(24.dp))
-
-                // 底部按鈕
-                Button(
-                    onClick = { /* TODO: 實現儲存記錄功能 */ },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.Gray,
-                    ),
-                    shape = RoundedCornerShape(8.dp),
-                ) {
-                    Text(
-                        text = "儲存記錄",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = Color.White,
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(8.dp))
             }
         }
 
