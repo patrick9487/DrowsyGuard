@@ -243,7 +243,8 @@ private fun FatigueMainContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f) // 讓相機畫面佔據主要空間
-                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                    .padding(top = 16.dp), // 增加頂部間距，避免與導航欄重疊
                 contentAlignment = Alignment.Center,
             ) {
                 AndroidView(
