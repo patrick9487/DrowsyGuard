@@ -270,15 +270,12 @@ private fun FatigueMainContent(
                     blinkFrequency = blinkFrequency,
                     yawnCount = yawnCount,
                     eyeClosureDuration = eyeClosureDuration,
+                    isCalibrating = isCalibrating,
+                    calibrationProgress = calibrationProgress,
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
             }
-        }
-
-        // 校正進度條
-        if (isCalibrating) {
-            CalibrationProgressOverlay(calibrationProgress)
         }
 
         // 疲勞提醒覆蓋層
@@ -332,6 +329,8 @@ private fun DetectionStats(
     blinkFrequency: Int,
     yawnCount: Int,
     eyeClosureDuration: Long,
+    isCalibrating: Boolean = false,
+    calibrationProgress: Int = 0,
 ) {
     Row(
         modifier = Modifier
@@ -339,11 +338,18 @@ private fun DetectionStats(
             .padding(horizontal = 16.dp),
         horizontalArrangement = Arrangement.SpaceEvenly,
     ) {
-        // 眨眼頻率
-        StatItem(
-            value = "${blinkFrequency}次",
-            label = "眨眼/分鐘",
-        )
+        // 眨眼頻率或校正進度
+        if (isCalibrating) {
+            CalibrationStatItem(
+                progress = calibrationProgress,
+                label = "校正中",
+            )
+        } else {
+            StatItem(
+                value = "${blinkFrequency}次",
+                label = "眨眼/分鐘",
+            )
+        }
 
         // 打哈欠次數
         StatItem(
@@ -373,6 +379,45 @@ private fun StatItem(
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurface,
         )
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+            textAlign = TextAlign.Center,
+        )
+    }
+}
+
+@Composable
+private fun CalibrationStatItem(
+    progress: Int,
+    label: String,
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.fillMaxWidth(), // 使用 fillMaxWidth 而不是固定寬度
+    ) {
+        // 進度條
+        LinearProgressIndicator(
+            progress = progress / 100f,
+            modifier = Modifier
+                .height(8.dp)
+                .fillMaxWidth(),
+            color = MaterialTheme.colorScheme.primary,
+            trackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
+        )
+        
+        Spacer(modifier = Modifier.height(4.dp))
+        
+        // 進度百分比
+        Text(
+            text = "${progress}%",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.primary,
+        )
+        
+        // 標籤
         Text(
             text = label,
             style = MaterialTheme.typography.bodyMedium,
@@ -431,42 +476,6 @@ private fun FatigueAlertOverlay(fatigueLevel: com.patrick.core.FatigueLevel) {
                             .padding(horizontal = 24.dp, vertical = 12.dp),
                 )
             }
-        }
-    }
-}
-
-@Composable
-private fun CalibrationProgressOverlay(calibrationProgress: Int) {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.BottomCenter,
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier =
-                Modifier
-                    .padding(bottom = 120.dp)
-                    .background(
-                        MaterialTheme.colorScheme.surface.copy(alpha = 0.8f),
-                        shape = MaterialTheme.shapes.medium,
-                    )
-                    .padding(24.dp),
-        ) {
-            Text(
-                text = "校正中… $calibrationProgress%",
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
-            Spacer(modifier = Modifier.padding(16.dp))
-            LinearProgressIndicator(
-                progress = calibrationProgress / 100f,
-                modifier =
-                    Modifier
-                        .padding(horizontal = 32.dp)
-                        .height(8.dp),
-                color = MaterialTheme.colorScheme.primary,
-                trackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
-            )
         }
     }
 }
