@@ -370,21 +370,23 @@ private fun StatItem(
     value: String,
     label: String,
 ) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Text(
-            text = value,
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-            textAlign = TextAlign.Center,
-        )
+    FixedHeightStatContainer {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text(
+                text = value,
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                textAlign = TextAlign.Center,
+            )
+        }
     }
 }
 
@@ -393,36 +395,50 @@ private fun CalibrationStatItem(
     progress: Int,
     label: String,
 ) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
+    FixedHeightStatContainer {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            // 進度條
+            LinearProgressIndicator(
+                progress = progress / 100f,
+                modifier = Modifier
+                    .height(8.dp)
+                    .fillMaxWidth(),
+                color = MaterialTheme.colorScheme.primary,
+                trackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
+            )
+            
+            Spacer(modifier = Modifier.height(4.dp))
+            
+            // 進度百分比
+            Text(
+                text = "${progress}%",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary,
+            )
+            
+            // 標籤
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                textAlign = TextAlign.Center,
+            )
+        }
+    }
+}
+
+@Composable
+private fun FixedHeightStatContainer(
+    content: @Composable () -> Unit,
+) {
+    Box(
+        modifier = Modifier.height(80.dp), // 固定高度，確保所有統計項目佔據相同空間
+        contentAlignment = Alignment.Center,
     ) {
-        // 進度條
-        LinearProgressIndicator(
-            progress = progress / 100f,
-            modifier = Modifier
-                .height(8.dp)
-                .fillMaxWidth(),
-            color = MaterialTheme.colorScheme.primary,
-            trackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
-        )
-        
-        Spacer(modifier = Modifier.height(4.dp))
-        
-        // 進度百分比
-        Text(
-            text = "${progress}%",
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary,
-        )
-        
-        // 標籤
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-            textAlign = TextAlign.Center,
-        )
+        content()
     }
 }
 
