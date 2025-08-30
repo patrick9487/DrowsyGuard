@@ -246,13 +246,12 @@ private fun FatigueMainContent(
                 modifier = Modifier.padding(top = 16.dp, bottom = 8.dp),
             )
 
-            // 相機預覽區域
+            // 相機預覽區域 - 佔據上半部分，去掉黑色背景
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(200.dp)
-                    .background(Color.Black)
-                    .padding(16.dp),
+                    .weight(1f) // 讓相機畫面佔據剩餘空間的主要部分
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
                 contentAlignment = Alignment.Center,
             ) {
                 AndroidView(
@@ -261,41 +260,47 @@ private fun FatigueMainContent(
                 )
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // 疲勞等級指示器
-            FatigueLevelIndicator(fatigueLevel)
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            // 統計數據
-            DetectionStats(
-                blinkFrequency = blinkFrequency,
-                yawnCount = yawnCount,
-                eyeClosureDuration = eyeClosureDuration,
-            )
-
-            Spacer(modifier = Modifier.weight(1f))
-
-            // 底部按鈕
-            Button(
-                onClick = { /* TODO: 實現儲存記錄功能 */ },
+            // 下半部分數據顯示區域
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.Gray,
-                ),
-                shape = RoundedCornerShape(8.dp),
+                    .padding(horizontal = 16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                Text(
-                    text = "儲存記錄",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = Color.White,
-                )
-            }
+                // 疲勞等級指示器
+                FatigueLevelIndicator(fatigueLevel)
 
-            Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // 統計數據
+                DetectionStats(
+                    blinkFrequency = blinkFrequency,
+                    yawnCount = yawnCount,
+                    eyeClosureDuration = eyeClosureDuration,
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // 底部按鈕
+                Button(
+                    onClick = { /* TODO: 實現儲存記錄功能 */ },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.Gray,
+                    ),
+                    shape = RoundedCornerShape(8.dp),
+                ) {
+                    Text(
+                        text = "儲存記錄",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = Color.White,
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+            }
         }
 
         // 校正進度條
