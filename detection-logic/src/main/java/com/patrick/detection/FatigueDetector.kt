@@ -82,6 +82,10 @@ class FatigueDetector(private val context: Context) {
     private var isFaceDetected = false
     private var faceDetectionStartTime: Long = 0
     private val faceDetectionDelay = 1000L // 偵測到臉部後延遲1秒開始校正
+    
+    // 校正容錯機制
+    private var lastFaceDetectionTime: Long = 0
+    private val faceDetectionTolerance = 3000L // 允許3秒的臉部偵測丟失
 
     // 监听器
     private var fatigueListener: FatigueDetectionListener? = null
@@ -295,13 +299,17 @@ class FatigueDetector(private val context: Context) {
                 // 首次偵測到臉部
                 isFaceDetected = true
                 faceDetectionStartTime = currentTime
+                lastFaceDetectionTime = currentTime
                 FatigueDetectionLogger.logEvent(
                     "首次偵測到臉部，準備開始校正",
                     eventType = "FaceDetectionStart",
                 )
             }
             hasFace && isFaceDetected -> {
-                // 持續偵測到臉部，檢查是否應該開始校正
+                // 持續偵測到臉部，更新最後偵測時間
+                lastFaceDetectionTime = currentTime
+                
+                // 檢查是否應該開始校正
                 // 只有在未校正過且臉部偵測穩定的情況下才開始校正
                 if (!calibrationStateManager.hasCalibrated() && !isCalibrating && currentTime - faceDetectionStartTime >= faceDetectionDelay) {
                     FatigueDetectionLogger.logEvent(
@@ -312,19 +320,30 @@ class FatigueDetector(private val context: Context) {
                 }
             }
             !hasFace && isFaceDetected -> {
-                // 失去臉部偵測
-                isFaceDetected = false
-                if (isCalibrating) {
+                // 暫時失去臉部偵測，檢查是否在容錯時間內
+                val timeSinceLastDetection = currentTime - lastFaceDetectionTime
+                
+                if (timeSinceLastDetection > faceDetectionTolerance) {
+                    // 超過容錯時間，真正失去臉部偵測
+                    isFaceDetected = false
+                    if (isCalibrating) {
+                        FatigueDetectionLogger.logEvent(
+                            "長時間失去臉部偵測，停止校正",
+                            eventType = "CalibrationStop",
+                        )
+                        stopCalibration()
+                    }
                     FatigueDetectionLogger.logEvent(
-                        "失去臉部偵測，停止校正",
-                        eventType = "CalibrationStop",
+                        "長時間失去臉部偵測",
+                        eventType = "FaceDetectionLost",
                     )
-                    stopCalibration()
+                } else {
+                    // 在容錯時間內，保持校正狀態
+                    FatigueDetectionLogger.logEvent(
+                        "短暫失去臉部偵測，校正繼續進行",
+                        eventType = "FaceDetectionTemporary",
+                    )
                 }
-                FatigueDetectionLogger.logEvent(
-                    "失去臉部偵測",
-                    eventType = "FaceDetectionLost",
-                )
             }
         }
     }
