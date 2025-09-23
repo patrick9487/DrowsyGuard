@@ -22,13 +22,13 @@ class FatigueDetector(private val context: Context) {
 
         // 默认阈值
         private const val DEFAULT_EAR_THRESHOLD = 0.15f // 根據實際 EAR 值調整，睜眼約 0.13-0.15，閉眼約 0.07-0.10
-        private const val DEFAULT_MAR_THRESHOLD = 0.6f // 降低一點以提高敏感度，但用更嚴格的時間和峰值驗證
+        private const val DEFAULT_MAR_THRESHOLD = 0.7f // 提高 MAR 閾值，減少說話誤判為打哈欠
         private const val DEFAULT_FATIGUE_EVENT_THRESHOLD = 2 // 調整為 2，符合用戶需求
 
         // 时间阈值 - 根據用戶需求調整
         private const val DEFAULT_EAR_CLOSURE_DURATION_THRESHOLD = 1500L // 調整為 1.5 秒（警告條件）
-        private const val DEFAULT_YAWN_DURATION_THRESHOLD = 2500L // 打哈欠：2.5秒，避免說話誤判
-        private const val DEFAULT_YAWN_MIN_DURATION = 1000L // 打哈欠最小時間：1秒
+        private const val DEFAULT_YAWN_DURATION_THRESHOLD = 3500L // 打哈欠：3.5秒，更嚴格的時間要求
+        private const val DEFAULT_YAWN_MIN_DURATION = 1500L // 打哈欠最小時間：1.5秒
         private const val DEFAULT_BLINK_FREQUENCY_THRESHOLD = 25 // 調整為 25 次/分鐘
 
         // 眼睛特征点索引 (MediaPipe 官方文档)
@@ -459,7 +459,7 @@ class FatigueDetector(private val context: Context) {
         val mar = calculateMAR(landmarks, LandmarkIndices.MOUTH)
         
         // 提高 MAR 閾值，更準確區分打哈欠和說話
-        val yawnMarThreshold = currentMarThreshold * 1.4f // 比正常說話更大的張嘴程度
+        val yawnMarThreshold = currentMarThreshold * 1.6f // 提高閾值倍數，減少誤判
 
         return when {
             mar > yawnMarThreshold && !isMouthOpen -> {
@@ -511,8 +511,8 @@ class FatigueDetector(private val context: Context) {
                     totalDuration >= DEFAULT_YAWN_MIN_DURATION -> {
                         // 中等時間張嘴，可能是打哈欠，但需要更高的 MAR 峰值驗證
                         val maxMarDuringOpen = mar // 簡化：用閉合前的 MAR 作為近似
-                        if (maxMarDuringOpen > currentMarThreshold * 1.6f) {
-                            // MAR 峰值夠高，確認為打哈欠
+                        if (maxMarDuringOpen > currentMarThreshold * 2.0f) {
+                            // 提高 MAR 峰值要求，更嚴格的打哈欠驗證
                             yawnCount++
                             FatigueDetectionLogger.logEvent(
                                 "打哈欠檢測成功（高峰值）：${totalDuration}ms，峰值MAR=${"%.3f".format(maxMarDuringOpen)}，計數：$yawnCount",
