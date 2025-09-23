@@ -22,13 +22,13 @@ class FatigueDetector(private val context: Context) {
 
         // 默认阈值
         private const val DEFAULT_EAR_THRESHOLD = 0.15f // 根據實際 EAR 值調整，睜眼約 0.13-0.15，閉眼約 0.07-0.10
-        private const val DEFAULT_MAR_THRESHOLD = 0.7f // 提高 MAR 閾值，減少說話誤判為打哈欠
+        private const val DEFAULT_MAR_THRESHOLD = 0.6f // 提高 MAR 閾值，減少說話誤判為打哈欠
         private const val DEFAULT_FATIGUE_EVENT_THRESHOLD = 2 // 調整為 2，符合用戶需求
 
         // 时间阈值 - 根據用戶需求調整
-        private const val DEFAULT_EAR_CLOSURE_DURATION_THRESHOLD = 1500L // 調整為 1.5 秒（警告條件）
-        private const val DEFAULT_YAWN_DURATION_THRESHOLD = 3500L // 打哈欠：3.5秒，更嚴格的時間要求
-        private const val DEFAULT_YAWN_MIN_DURATION = 1500L // 打哈欠最小時間：1.5秒
+        private const val DEFAULT_EAR_CLOSURE_DURATION_THRESHOLD = 1200L // 調整為 1.5 秒（警告條件）
+        private const val DEFAULT_YAWN_DURATION_THRESHOLD = 2000L // 打哈欠：3.5秒，更嚴格的時間要求
+        private const val DEFAULT_YAWN_MIN_DURATION = 1000L // 打哈欠最小時間：1.5秒
         private const val DEFAULT_BLINK_FREQUENCY_THRESHOLD = 25 // 調整為 25 次/分鐘
 
         // 眼睛特征点索引 (MediaPipe 官方文档)
@@ -458,12 +458,12 @@ class FatigueDetector(private val context: Context) {
     ): FatigueEvent? {
         val mar = calculateMAR(landmarks, LandmarkIndices.MOUTH)
         
-        // 提高 MAR 閾值，更準確區分打哈欠和說話
-        val yawnMarThreshold = currentMarThreshold * 1.6f // 提高閾值倍數，減少誤判
+        // 重新設計：只要嘴巴張開超過閾值就算潛在打哈欠，不需要特定範圍
+        val yawnMarThreshold = currentMarThreshold * 1.2f // 降低閾值，讓更多張嘴動作被考慮
 
         return when {
             mar > yawnMarThreshold && !isMouthOpen -> {
-                // 嘴巴開始張開（需要比說話更大的張嘴程度）
+                // 嘴巴開始張開，開始記錄
                 isMouthOpen = true
                 lastMouthOpenStartTime = currentTime
                 FatigueDetectionLogger.logEvent(
@@ -473,8 +473,22 @@ class FatigueDetector(private val context: Context) {
                 null
             }
             mar > yawnMarThreshold && isMouthOpen -> {
-                // 嘴巴持續張開，記錄進度但不觸發
+                // 嘴巴持續張開，檢查是否已經達到打哈欠條件
                 val openDuration = currentTime - lastMouthOpenStartTime
+                
+                // 如果張嘴時間足夠長且張嘴程度足夠大，立即觸發打哈欠
+                if (openDuration >= DEFAULT_YAWN_DURATION_THRESHOLD && mar > currentMarThreshold * 1.8f) {
+                    // 長時間且大幅張嘴，確認為打哈欠
+                    yawnCount++
+                    FatigueDetectionLogger.logEvent(
+                        "打哈欠檢測成功（持續張嘴）：${openDuration}ms，MAR=${"%.3f".format(mar)}，計數：$yawnCount",
+                        eventType = "YawnDetected",
+                        duration = openDuration
+                    )
+                    // 重置狀態，避免重複觸發
+                    isMouthOpen = false
+                    return FatigueEvent.Yawn(openDuration)
+                }
                 
                 // 每0.5秒記錄一次進度，避免日誌過多
                 if (openDuration % 500 == 0L && openDuration >= 1000L) {
@@ -508,30 +522,18 @@ class FatigueDetector(private val context: Context) {
                         )
                         FatigueEvent.Yawn(totalDuration)
                     }
-                    totalDuration >= DEFAULT_YAWN_MIN_DURATION -> {
-                        // 中等時間張嘴，可能是打哈欠，但需要更高的 MAR 峰值驗證
-                        val maxMarDuringOpen = mar // 簡化：用閉合前的 MAR 作為近似
-                        if (maxMarDuringOpen > currentMarThreshold * 2.0f) {
-                            // 提高 MAR 峰值要求，更嚴格的打哈欠驗證
-                            yawnCount++
-                            FatigueDetectionLogger.logEvent(
-                                "打哈欠檢測成功（高峰值）：${totalDuration}ms，峰值MAR=${"%.3f".format(maxMarDuringOpen)}，計數：$yawnCount",
-                                eventType = "YawnDetected",
-                                duration = totalDuration
-                            )
-                            FatigueEvent.Yawn(totalDuration)
-                        } else {
-                            // 可能是說話，不觸發
-                            FatigueDetectionLogger.logEvent(
-                                "疑似說話，不觸發打哈欠：${totalDuration}ms，峰值MAR=${"%.3f".format(maxMarDuringOpen)}",
-                                eventType = "PossibleSpeech",
-                                duration = totalDuration
-                            )
-                            null
-                        }
+                    totalDuration >= DEFAULT_YAWN_MIN_DURATION && mar > currentMarThreshold * 1.5f -> {
+                        // 中等時間張嘴且張嘴程度足夠，確認為打哈欠
+                        yawnCount++
+                        FatigueDetectionLogger.logEvent(
+                            "打哈欠檢測成功（中等時間+高張嘴）：${totalDuration}ms，MAR=${"%.3f".format(mar)}，計數：$yawnCount",
+                            eventType = "YawnDetected",
+                            duration = totalDuration
+                        )
+                        FatigueEvent.Yawn(totalDuration)
                     }
                     else -> {
-                        // 時間太短，可能是說話或正常張嘴
+                        // 時間太短或張嘴程度不夠，可能是說話或正常張嘴
                         FatigueDetectionLogger.logEvent(
                             "張嘴時間過短，忽略：${totalDuration}ms",
                             eventType = "ShortMouthOpen",
